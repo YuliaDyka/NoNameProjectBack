@@ -524,6 +524,7 @@ export const UserScalarFieldEnum = {
   password_hash: 'password_hash',
   role: 'role',
   refreshToken: 'refreshToken',
+  avatarUrl: 'avatarUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

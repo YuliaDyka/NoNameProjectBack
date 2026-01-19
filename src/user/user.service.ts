@@ -2,6 +2,9 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class UserService {
@@ -63,14 +66,105 @@ export class UserService {
     });
   }
 
-  private getSafeUserData = (user: any) => {
-    return {
-      id: user?.id,
-      username: user?.username,
-      email: user?.email,
-      role: user?.role,
-      createdAt: user?.createdAt,
-      updatedAt: user?.updatedAt,
-    };
+private getSafeUserData = (user: any) => {
+  return {
+    id: user?.id,
+    username: user?.username,
+    email: user?.email,
+    role: user?.role,
+    avatarUrl: user?.avatarUrl, // 👈 ВАЖЛИВО
+    createdAt: user?.createdAt,
+    updatedAt: user?.updatedAt,
   };
+};
+
+
+  async updateProfile(id: string, data: UpdateProfileDto) {
+  if (!data.username)
+    throw new BadRequestException('Nothing to update');
+
+  return this.prisma.user.update({
+    where: { id },
+    data,
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+}
+
+async updateAvatar(userId: string, filename: string) {
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+    select: { avatarUrl: true },
+  });
+
+  // 🧹 видалити старий аватар
+  if (user?.avatarUrl) {
+    const oldAvatarPath = path.join(
+      process.cwd(),
+      user.avatarUrl.replace('/', ''),
+    );
+
+    if (fs.existsSync(oldAvatarPath)) {
+      try {
+        fs.unlinkSync(oldAvatarPath);
+      } catch (err) {
+        console.warn('Failed to delete old avatar:', err);
+      }
+    }
+  }
+
+
+
+  // 💾 зберегти новий шлях
+  return this.prisma.user.update({
+    where: { id: userId },
+    data: {
+      avatarUrl: `/uploads/avatars/${filename}`,
+    },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      avatarUrl: true,
+      updatedAt: true,
+    },
+  });
+}
+
+async deleteAvatar(userId: string) {
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+    select: { avatarUrl: true },
+  });
+
+  if (user?.avatarUrl) {
+    const filePath = path.join(
+      process.cwd(),
+      user.avatarUrl.replace('/', ''),
+    );
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  }
+
+  return this.prisma.user.update({
+    where: { id: userId },
+    data: { avatarUrl: null },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      avatarUrl: true,
+    },
+  });
+}
+
+
 }

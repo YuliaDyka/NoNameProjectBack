@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req, Patch, Body } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Patch, Body, BadRequestException, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { type Request } from 'express';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -7,6 +7,14 @@ import { Roles } from '@/auth/roles.decorator';
 import { Role } from '@/auth/roles.enum';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import {
+  UseInterceptors,
+  UploadedFile,
+  Post,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { avatarMulterOptions } from './multer-avatar.config';
 
 @ApiTags('User')
 @Controller('user')
@@ -34,13 +42,50 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  // @UseGuards(JwtAuthGuard)
+  // @Patch()
+  // @ApiOperation({ summary: 'Change user data' })
+  // @ApiResponse({ status: 200, description: 'User data changed' })
+  // @ApiResponse({ status: 401, description: 'Invalid credentionals' })
+  // async updateUser(@Req() req: Request, @Body() dto: UpdateUserDto) {
+  //   const user = req.user as { userId: string };
+  //   return this.userService.update(user.userId, dto);
+  // }
+
   @UseGuards(JwtAuthGuard)
-  @Patch()
-  @ApiOperation({ summary: 'Change user data' })
-  @ApiResponse({ status: 200, description: 'User data changed' })
-  @ApiResponse({ status: 401, description: 'Invalid credentionals' })
-  async updateUser(@Req() req: Request, @Body() dto: UpdateUserDto) {
-    const user = req.user as { userId: string };
-    return this.userService.update(user.userId, dto);
-  }
+@Patch('me')
+async updateMe(
+  @Req() req: Request,
+  @Body() dto: UpdateProfileDto,
+) {
+  const user = req.user as { userId: string };
+  return this.userService.updateProfile(user.userId, dto);
 }
+
+@UseGuards(JwtAuthGuard)
+@Post('me/avatar')
+@UseInterceptors(FileInterceptor('avatar', avatarMulterOptions))
+async uploadAvatar(
+  @Req() req: Request,
+  @UploadedFile() file: Express.Multer.File,
+) {
+  const user = req.user as { userId: string };
+
+  if (!file) {
+    throw new BadRequestException('File is required');
+  }
+
+  return this.userService.updateAvatar(user.userId, file.filename);
+}
+
+@UseGuards(JwtAuthGuard)
+@Delete('me/avatar')
+async deleteAvatar(@Req() req: Request) {
+  const user = req.user as { userId: string };
+  return this.userService.deleteAvatar(user.userId);
+}
+}
+
+
+
+
