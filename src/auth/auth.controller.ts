@@ -15,6 +15,10 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePassordDto as ChangePasswordDto } from './dto/changePassword.dto';
+import {
+  accessTokenCookieOptions,
+  refreshTokenCookieOptions,
+} from './cookie.options';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -36,18 +40,8 @@ export class AuthController {
       dto.password,
     );
 
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 15 * 60 * 1000,
-    });
+    res.cookie('accessToken', tokens.accessToken, accessTokenCookieOptions);
+    res.cookie('refreshToken', tokens.refreshToken, refreshTokenCookieOptions);
 
     return { message: 'Registered' };
   }
@@ -63,18 +57,8 @@ export class AuthController {
   ) {
     const tokens = await this.authService.login(dto.email, dto.password);
 
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 15 * 60 * 1000,
-    });
+    res.cookie('accessToken', tokens.accessToken, accessTokenCookieOptions);
+    res.cookie('refreshToken', tokens.refreshToken, refreshTokenCookieOptions);
 
     return { message: 'Logged in' };
   }
@@ -92,18 +76,8 @@ export class AuthController {
 
     const tokens = await this.authService.refreshTokens(cookie);
 
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 15 * 60 * 1000,
-    });
+    res.cookie('accessToken', tokens.accessToken, accessTokenCookieOptions);
+    res.cookie('refreshToken', tokens.refreshToken, refreshTokenCookieOptions);
 
     return { message: 'Token Refreshed' };
   }

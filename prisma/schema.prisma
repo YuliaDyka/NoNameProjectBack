@@ -15,18 +15,40 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
+  id            String  @id @default(uuid())
+  email         String  @unique
   username      String?
   password_hash String
-  role          Role     @default(User)
+  role          Role    @default(User)
   refreshToken  String?
   avatarUrl     String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  movies    Movie[]
 }
 
 enum Role {
   User
   Admin
+}
+
+model Movie {
+  id        String      @id @default(uuid())
+  title     String
+  year      Int?
+  status    MovieStatus @default(PLANNED)
+  rating    Int?
+  watchedAt DateTime?
+  userId    String
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum MovieStatus {
+  PLANNED
+  WATCHED
 }

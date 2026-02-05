@@ -15,3 +15,11 @@ export const Role = {
 } as const
 
 export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const MovieStatus = {
+  PLANNED: 'PLANNED',
+  WATCHED: 'WATCHED'
+} as const
+
+export type MovieStatus = (typeof MovieStatus)[keyof typeof MovieStatus]
