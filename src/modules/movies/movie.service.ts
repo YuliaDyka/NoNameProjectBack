@@ -50,4 +50,21 @@ export class MovieService {
       data,
     });
   }
+
+  async updatePoster(movieId: string, filename: string) {
+    return this.prisma.movie.update({
+      where: { id: movieId },
+      data: {
+        posterUrl: filename,
+      },
+    });
+  }
+  async deletePoster(movieId: string) {
+    return this.prisma.movie.update({
+      where: { id: movieId },
+      data: {
+        posterUrl: null,
+      },
+    });
+  }
 }

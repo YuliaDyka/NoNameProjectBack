@@ -5,7 +5,6 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { join } from 'path';
 
-
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
@@ -17,10 +16,9 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // ✅ СТАТИЧНІ ФАЙЛИ (avatars)
-app.useStaticAssets(join(process.cwd(), 'uploads'), {
-  prefix: '/uploads',
-});
-
+  app.useStaticAssets(join(__dirname, '..', '..', 'uploads'), {
+    prefix: '/uploads',
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Cinema Booking API')
@@ -34,4 +32,3 @@ app.useStaticAssets(join(process.cwd(), 'uploads'), {
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
-

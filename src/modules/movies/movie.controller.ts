@@ -8,6 +8,9 @@ import {
   Param,
   Req,
   UseGuards,
+  BadRequestException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { type Request } from 'express';
@@ -15,6 +18,8 @@ import { type Request } from 'express';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { MovieService } from './movie.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
+import { posterMulterOptions } from './mutler-poster-config';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Movies')
 @UseGuards(JwtAuthGuard)
@@ -66,5 +71,25 @@ export class MovieController {
   async remove(@Req() req: Request, @Param('id') id: string) {
     const user = req.user as { userId: string };
     return this.movieService.delete(user.userId, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/poster')
+  @UseInterceptors(FileInterceptor('poster', posterMulterOptions))
+  async uploadPoster(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+
+    return this.movieService.updatePoster(id, file.filename);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/poster')
+  async deletePoster(@Param('id') id: string) {
+    return this.movieService.deletePoster(id);
   }
 }

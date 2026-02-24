@@ -90,6 +90,7 @@ export const MovieScalarFieldEnum = {
   id: 'id',
   title: 'title',
   year: 'year',
+  posterUrl: 'posterUrl',
   status: 'status',
   rating: 'rating',
   watchedAt: 'watchedAt',

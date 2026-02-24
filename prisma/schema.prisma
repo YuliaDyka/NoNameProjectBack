@@ -37,6 +37,7 @@ model Movie {
   id        String      @id @default(uuid())
   title     String
   year      Int?
+  posterUrl String?
   status    MovieStatus @default(PLANNED)
   rating    Int?
   watchedAt DateTime?
